@@ -16,8 +16,8 @@ Nginx with bundled modules.
 ### Now you are ready to build your Nginx
 
     docker build -t nginx_super_build .
-    docker run --rm nginx_super_build > super_nginx
+    docker run --rm nginx_super_build > supernginx
 
-## Commit the binary to the nginx_super_binary repo: 
+## Commit the binary to the supernginx repo: 
 
-	git@bitbucket.org:ipowow/nginx_super_binary.git 
+	git@bitbucket.org:ipowow/supernginx.git 
