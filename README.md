@@ -2,7 +2,16 @@
 Supernginx build
 ===
 
-Nginx with bundled modules.
+Nginx with bundled modules:
+	* echo-nginx module
+	* lua-nginx-module module
+	* ngx_devel_kit module
+	* set-misc-nginx-module module
+	* encrypted-session-nginx-module module
+	* headers-more-nginx-module module
+	+ pcre
+	+ openssl
+	
 
 ### Dependencies
 
@@ -18,6 +27,8 @@ Nginx with bundled modules.
     docker build -t nginx_super_build .
     docker run --rm nginx_super_build > supernginx
 
-## Commit the binary to the supernginx repo: 
+## Commit the binary to the nginx_super_binary repo: 
 
-	git@bitbucket.org:ipowow/supernginx.git 
+	git@bitbucket.org:ipowow/nginx_super_binary.git 
+
+

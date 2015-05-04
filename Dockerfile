@@ -1,27 +1,83 @@
-FROM centos:centos6
+FROM phusion/baseimage:0.9.16
 MAINTAINER Matt Lohier "mlohier@ipowow.com"
 
 # Install some packages we will need
-RUN yum -y install yum-utils \
-        gcc \
-        gcc-c++ \
+RUN apt-get update && \
+    apt-get dist-upgrade -y
+RUN apt-get install -y \
+        build-essential \
+        wget \
         git \
-        zlib-devel \
-        nspr-devel \
-        nss-devel \
-        pcre-devel \
-        lua-devel \
-        openssl-devel
+        zlib1g-dev \
+        libluajit-5.1-dev
 
-# Install nginx
-RUN cd /tmp && \
-    git clone https://github.com/nginx/nginx.git && \
-    cd nginx && \
-    git checkout v1.8.0 && \
-    rm -rf .git*
+# define the desired versions
+ENV NGINX_VERSION nginx-1.8.0
+ENV OPENSSL_VERSION openssl-1.0.2a
+ENV PCRE_VERSION pcre-8.36
+
+# path to download location
+ENV NGINX_SOURCE http://nginx.org/download/
+ENV OPENSSL_SOURCE https://www.openssl.org/source/
+ENV PCRE_SOURCE ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/
+
+# build path
+ENV BPATH /usr/src
+
+# refer to http://nginx.org/en/pgp_keys.html
+RUN gpg --keyserver keys.gnupg.net --recv-key \
+    F5806B4D \
+    A524C53E \
+    A1C052F8 \
+    2C172083 \
+    7ADB39A8 \
+    6C7E5E82 \
+    7BD9BF62
+    
+# refer to https://www.openssl.org/about/
+RUN gpg --keyserver keys.gnupg.net --recv-key \
+    49A563D9 \
+    FA40E9E2 \
+    2118CF83 \
+    1FE8E023 \
+    0E604491 \
+    49A563D9 \
+    FA40E9E2 \
+    41FBF7DD \
+    9C58A66D \
+    2118CF83 \
+    CE69424E \
+    5A6A9B85 \
+    1FE8E023 \
+    41C25E5D \
+    5C51B27C \
+    E18C1C32
+    
+# Philip Hazel's public GPG key for pcre
+RUN gpg --keyserver keys.gnupg.net --recv-key FB0F43D8
+
+    
+# download source packages and signatures
+RUN cd $BPATH \
+    && wget $PCRE_SOURCE$PCRE_VERSION.tar.gz \
+    && wget $PCRE_SOURCE$PCRE_VERSION.tar.gz.sig \
+    && wget $OPENSSL_SOURCE$OPENSSL_VERSION.tar.gz \
+    && wget $OPENSSL_SOURCE$OPENSSL_VERSION.tar.gz.asc \
+    && wget $NGINX_SOURCE$NGINX_VERSION.tar.gz \
+    && wget $NGINX_SOURCE$NGINX_VERSION.tar.gz.asc
+
+# verify and and extract
+RUN cd $BPATH \
+    && gpg --verify $PCRE_VERSION.tar.gz.sig \
+    && gpg --verify $OPENSSL_VERSION.tar.gz.asc \
+    && gpg --verify $NGINX_VERSION.tar.gz.asc \
+    && tar xzf $PCRE_VERSION.tar.gz \
+    && tar xzf $OPENSSL_VERSION.tar.gz \
+    && tar xzf $NGINX_VERSION.tar.gz \
+    && rm *.tar.gz*
 
 # Install a makefile
-ADD _configure.sh /tmp/nginx/
+ADD _configure.sh $BPATH/$NGINX_VERSION/
 
 ## --- iPowow NGINX customisations ---
 
@@ -31,7 +87,9 @@ RUN cd /tmp && \
     cd echo-nginx-module && \
     git checkout v0.57 && \
     rm -rf .git* && \
-    sed -i '/$EXTRA_MODULES/i--add-module=/tmp/echo-nginx-module \\' /tmp/nginx/_configure.sh
+    { \
+        echo '--add-module=/tmp/echo-nginx-module \\'; \
+    } >> $BPATH/$NGINX_VERSION/_configure.sh
 
 # lua-nginx-module module
 RUN cd /tmp && \
@@ -39,7 +97,9 @@ RUN cd /tmp && \
     cd lua-nginx-module && \
     git checkout v0.9.15 && \
     rm -rf .git* && \
-    sed -i '/$EXTRA_MODULES/i--add-module=/tmp/lua-nginx-module \\' /tmp/nginx/_configure.sh
+    { \
+        echo '--add-module=/tmp/lua-nginx-module \\'; \
+    } >> $BPATH/$NGINX_VERSION/_configure.sh
 
 # ngx_devel_kit module
 RUN cd /tmp && \
@@ -47,7 +107,9 @@ RUN cd /tmp && \
     cd ngx_devel_kit && \
     git checkout v0.2.19 && \
     rm -rf .git* && \
-    sed -i '/$EXTRA_MODULES/i--add-module=/tmp/ngx_devel_kit \\' /tmp/nginx/_configure.sh
+    { \
+        echo '--add-module=/tmp/ngx_devel_kit \\'; \
+    } >> $BPATH/$NGINX_VERSION/_configure.sh
 
 # set-misc-nginx-module module
 RUN cd /tmp && \
@@ -55,7 +117,9 @@ RUN cd /tmp && \
     cd set-misc-nginx-module && \
     git checkout master && \
     rm -rf .git* && \
-    sed -i '/$EXTRA_MODULES/i--add-module=/tmp/set-misc-nginx-module \\'  /tmp/nginx/_configure.sh
+    { \
+        echo '--add-module=/tmp/set-misc-nginx-module \\'; \
+    } >> $BPATH/$NGINX_VERSION/_configure.sh
 
 # encrypted-session-nginx-module module
 RUN cd /tmp && \
@@ -63,7 +127,9 @@ RUN cd /tmp && \
     cd encrypted-session-nginx-module && \
     git checkout master && \
     rm -rf .git* && \
-    sed -i '/$EXTRA_MODULES/i--add-module=/tmp/encrypted-session-nginx-module \\'  /tmp/nginx/_configure.sh
+    { \
+        echo '--add-module=/tmp/encrypted-session-nginx-module \\'; \
+    } >> $BPATH/$NGINX_VERSION/_configure.sh
 
 # headers-more-nginx-module module
 RUN cd /tmp && \
@@ -71,7 +137,9 @@ RUN cd /tmp && \
     cd headers-more-nginx-module && \
     git checkout v0.26 && \
     rm -rf .git* && \
-    sed -i '/$EXTRA_MODULES/i--add-module=/tmp/headers-more-nginx-module \\'  /tmp/nginx/_configure.sh
+    { \
+        echo '--add-module=/tmp/headers-more-nginx-module \\'; \
+    } >> $BPATH/$NGINX_VERSION/_configure.sh
 
 # nginx-upload-module
 #RUN cd /tmp && \
@@ -81,20 +149,20 @@ RUN cd /tmp && \
 #    rm -rf .git* && \
 #    sed -i '/$EXTRA_MODULES/i--add-module=/tmp/nginx-upload-module \\'  /tmp/nginx/_configure.sh
 
-RUN cat /tmp/nginx/_configure.sh
-
-## --- END iPowow NGINX customisations ---
+## --- iPowow NGINX customisations (end) ---
 
 # Build nginx (with modules we have just added)
-RUN cd /tmp/nginx/ && \
+
+RUN cat $BPATH/$NGINX_VERSION/_configure.sh
+
+RUN cd $BPATH/$NGINX_VERSION && \
     ./_configure.sh && \
     make && \
     make install
 
 # Check that everything went ok listing nginx compilation flags
 RUN cd /lib64 && \
-    ln -s libpcre.so.0 libpcre.so.1 && \
-    /usr/local/nginx/sbin/nginx -V
+    /usr/sbin/nginx -V && \
+    ldd /usr/sbin/nginx
 
-CMD ["cat", "/usr/local/nginx/sbin/nginx"]
-
+CMD ["cat", "/usr/sbin/nginx"]
