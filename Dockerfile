@@ -4,17 +4,18 @@ MAINTAINER Matt Lohier "mlohier@ipowow.com"
 # Install some packages we will need
 RUN apt-get update && \
     apt-get dist-upgrade -y
+
 RUN apt-get install -y \
         build-essential \
         wget \
         git \
         zlib1g-dev \
-        libluajit-5.1-dev
+        liblua5.1
 
 # define the desired versions
-ENV NGINX_VERSION nginx-1.8.0
-ENV OPENSSL_VERSION openssl-1.0.2a
-ENV PCRE_VERSION pcre-8.36
+ENV NGINX_VERSION=nginx-1.8.0 \
+    OPENSSL_VERSION=openssl-1.0.2d \
+    PCRE_VERSION=pcre-8.37
 
 # path to download location
 ENV NGINX_SOURCE http://nginx.org/download/
@@ -56,7 +57,6 @@ RUN gpg --keyserver keys.gnupg.net --recv-key \
 # Philip Hazel's public GPG key for pcre
 RUN gpg --keyserver keys.gnupg.net --recv-key FB0F43D8
 
-    
 # download source packages and signatures
 RUN cd $BPATH \
     && wget $PCRE_SOURCE$PCRE_VERSION.tar.gz \
@@ -85,7 +85,7 @@ ADD _configure.sh $BPATH/$NGINX_VERSION/
 RUN cd /tmp && \
     git clone https://github.com/openresty/echo-nginx-module.git && \
     cd echo-nginx-module && \
-    git checkout v0.57 && \
+    git checkout v0.58 && \
     rm -rf .git* && \
     { \
         echo '--add-module=/tmp/echo-nginx-module \\'; \
@@ -95,7 +95,7 @@ RUN cd /tmp && \
 RUN cd /tmp && \
     git clone https://github.com/openresty/lua-nginx-module.git && \
     cd lua-nginx-module && \
-    git checkout v0.9.15 && \
+    git checkout v0.9.16 && \
     rm -rf .git* && \
     { \
         echo '--add-module=/tmp/lua-nginx-module \\'; \
@@ -115,7 +115,7 @@ RUN cd /tmp && \
 RUN cd /tmp && \
     git clone https://github.com/openresty/set-misc-nginx-module.git && \
     cd set-misc-nginx-module && \
-    git checkout master && \
+    git checkout v0.29 && \
     rm -rf .git* && \
     { \
         echo '--add-module=/tmp/set-misc-nginx-module \\'; \
@@ -125,7 +125,7 @@ RUN cd /tmp && \
 RUN cd /tmp && \
     git clone https://github.com/openresty/encrypted-session-nginx-module.git && \
     cd encrypted-session-nginx-module && \
-    git checkout master && \
+    git checkout v0.04 && \
     rm -rf .git* && \
     { \
         echo '--add-module=/tmp/encrypted-session-nginx-module \\'; \
@@ -135,7 +135,7 @@ RUN cd /tmp && \
 RUN cd /tmp && \
     git clone https://github.com/openresty/headers-more-nginx-module.git && \
     cd headers-more-nginx-module && \
-    git checkout v0.26 && \
+    git checkout v0.261 && \
     rm -rf .git* && \
     { \
         echo '--add-module=/tmp/headers-more-nginx-module \\'; \
