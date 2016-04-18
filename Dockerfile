@@ -1,4 +1,4 @@
-FROM phusion/baseimage:0.9.16
+FROM phusion/baseimage:0.9.18
 MAINTAINER Matt Lohier "mlohier@ipowow.com"
 
 # Install some packages we will need
@@ -13,9 +13,9 @@ RUN apt-get install -y \
         liblua5.1
 
 # define the desired versions
-ENV NGINX_VERSION=nginx-1.8.0 \
-    OPENSSL_VERSION=openssl-1.0.2d \
-    PCRE_VERSION=pcre-8.37
+ENV NGINX_VERSION=nginx-1.8.1 \
+    OPENSSL_VERSION=openssl-1.0.2g \
+    PCRE_VERSION=pcre-8.38
 
 # path to download location
 ENV NGINX_SOURCE http://nginx.org/download/
@@ -95,7 +95,7 @@ RUN cd /tmp && \
 RUN cd /tmp && \
     git clone https://github.com/openresty/lua-nginx-module.git && \
     cd lua-nginx-module && \
-    git checkout v0.9.16 && \
+    git checkout v0.10.2 && \
     rm -rf .git* && \
     { \
         echo '--add-module=/tmp/lua-nginx-module \\'; \
@@ -115,7 +115,7 @@ RUN cd /tmp && \
 RUN cd /tmp && \
     git clone https://github.com/openresty/set-misc-nginx-module.git && \
     cd set-misc-nginx-module && \
-    git checkout v0.29 && \
+    git checkout v0.30 && \
     rm -rf .git* && \
     { \
         echo '--add-module=/tmp/set-misc-nginx-module \\'; \
@@ -135,7 +135,7 @@ RUN cd /tmp && \
 RUN cd /tmp && \
     git clone https://github.com/openresty/headers-more-nginx-module.git && \
     cd headers-more-nginx-module && \
-    git checkout v0.261 && \
+    git checkout v0.29 && \
     rm -rf .git* && \
     { \
         echo '--add-module=/tmp/headers-more-nginx-module \\'; \
